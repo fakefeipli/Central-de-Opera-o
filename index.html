@@ -1,0 +1,1001 @@
+cat > /mnt/user-data/outputs/painel-pedidos.html << 'HTMLEOF'
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="dark">
+<title>Painel de Pedidos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    /* ---- chrome / superficies ---- */
+    --shell-bg:#17181a;
+    --panel-bg:#1e1f22;
+    --sidebar-bg:#202225;
+    --toolbar-bg:#1b1c1f;
+    --hover-bg:#2a2d31;
+    --active-bg:#2f3237;
+
+    --border:#34363b;
+    --border-strong:#44474d;
+
+    --text:#e7e8ea;
+    --text-soft:#a8adb4;
+    --text-faint:#787f88;
+
+    --brand:#4fa8ff;
+    --brand-dim:#3b82c9;
+    --brand-soft:rgba(79,168,255,.14);
+
+    --radius-sm:4px;
+    --radius-md:6px;
+
+    --font-display:'Space Grotesk', sans-serif;
+    --font-body:'Inter', sans-serif;
+    --font-mono:'IBM Plex Mono', monospace;
+
+    /* ---- status (brilhantes p/ contraste no escuro) ---- */
+    --autorizado:#4fa8ff;    --autorizado-bg:rgba(79,168,255,.16);
+    --separacao:#e3b341;     --separacao-bg:rgba(227,179,65,.16);
+    --conferencia:#ff9f5a;   --conferencia-bg:rgba(255,159,90,.16);
+    --transito:#b98ff5;      --transito-bg:rgba(185,143,245,.16);
+    --atrasado:#ff6b6b;      --atrasado-bg:rgba(255,107,107,.16);
+    --semtrat:#f2c94c;       --semtrat-bg:rgba(242,201,76,.16);
+  }
+
+  *{box-sizing:border-box;}
+  html,body{height:100%; margin:0; padding:0;}
+  body{
+    background:var(--shell-bg);
+    color:var(--text);
+    font-family:var(--font-body);
+    font-size:14px;
+    line-height:1.45;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3{font-family:var(--font-display); margin:0; color:var(--text); font-weight:700;}
+  ul{list-style:none; margin:0; padding:0;}
+  button{font-family:inherit;}
+  a{color:var(--brand);}
+
+  button:focus-visible,
+  input:focus-visible,
+  textarea:focus-visible{
+    outline:2px solid var(--brand);
+    outline-offset:1px;
+  }
+
+  ::-webkit-scrollbar{width:10px; height:10px;}
+  ::-webkit-scrollbar-track{background:transparent;}
+  ::-webkit-scrollbar-thumb{background-color:#45484e; border-radius:6px; border:2px solid transparent; background-clip:content-box;}
+  ::-webkit-scrollbar-thumb:hover{background-color:#5a5e66;}
+  *{scrollbar-color:#45484e transparent; scrollbar-width:thin;}
+
+  /* ================= APP SHELL (imersivo, borda a borda) ================= */
+  .app{
+    height:100vh;
+    display:flex;
+    flex-direction:column;
+    background:var(--shell-bg);
+  }
+
+  /* ---- title bar ---- */
+  .topbar{
+    flex:none;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    height:52px;
+    padding:0 18px;
+    background:var(--shell-bg);
+    border-bottom:1px solid var(--border);
+  }
+  .traffic-lights{display:flex; gap:6px; margin-right:14px;}
+  .traffic-lights span{width:10px; height:10px; border-radius:50%; display:block; opacity:.75;}
+  .traffic-lights .tl-r{background:#ff5f57;}
+  .traffic-lights .tl-y{background:#febc2e;}
+  .traffic-lights .tl-g{background:#28c840;}
+
+  .brand-lockup{display:flex; align-items:center;}
+  .brand-mark{flex:none; display:block; margin-right:10px;}
+  .brand-text h1{font-size:15.5px; font-weight:700; letter-spacing:-.005em;}
+  .brand-text .subtitle{
+    display:block;
+    font-size:11.5px;
+    color:var(--text-faint);
+    margin-top:1px;
+  }
+
+  .user-chip{
+    display:flex;
+    align-items:center;
+    gap:9px;
+    padding:5px 12px 5px 5px;
+    background:var(--panel-bg);
+    border:1px solid var(--border);
+    border-radius:999px;
+  }
+  .user-avatar{
+    width:26px; height:26px;
+    border-radius:50%;
+    background:var(--brand);
+    color:#0d1117;
+    display:flex; align-items:center; justify-content:center;
+    font-family:var(--font-display);
+    font-weight:700;
+    font-size:12px;
+  }
+  .user-chip .user-name{font-weight:600; font-size:13px; color:var(--text);}
+  .user-chip .user-role{display:block; font-size:11px; color:var(--text-faint);}
+
+  /* ================= KPIs (toolbar segmentada) ================= */
+  .kpis{
+    flex:none;
+    display:flex;
+    background:var(--toolbar-bg);
+    border-bottom:1px solid var(--border);
+  }
+  .kpi{
+    flex:1 1 0;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    text-align:left;
+    background:transparent;
+    border:none;
+    border-right:1px solid var(--border);
+    padding:12px 18px;
+    cursor:pointer;
+    transition:background .12s ease, box-shadow .12s ease;
+  }
+  .kpi:last-child{border-right:none;}
+  .kpi:hover{background:var(--hover-bg);}
+  .kpi-dot{
+    flex:none;
+    width:9px; height:9px;
+    border-radius:50%;
+    background:var(--dot-color, var(--brand));
+  }
+  .kpi-dot.is-warn{border-radius:2px; transform:rotate(45deg);}
+  .kpi-num{
+    display:block;
+    font-family:var(--font-display);
+    font-weight:700;
+    font-size:19px;
+    line-height:1;
+    color:var(--text);
+  }
+  .kpi-label{
+    display:block;
+    font-size:11px;
+    color:var(--text-faint);
+    margin-top:3px;
+    white-space:nowrap;
+  }
+  .kpi.is-active{
+    background:var(--tint-color, var(--brand-soft));
+    box-shadow:inset 0 -3px 0 0 var(--dot-color, var(--brand));
+  }
+
+  /* ================= FILTRO ATIVO ================= */
+  .filter-bar{
+    flex:none;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:9px 18px;
+    background:transparent;
+    border-bottom:1px solid var(--border);
+    border-left:3px solid var(--brand);
+  }
+  .filter-bar[hidden]{display:none;}
+  .filter-bar .fb-dot{width:8px; height:8px; border-radius:50%; background:var(--brand); flex:none;}
+  .filter-bar .fb-text{font-size:12.5px; color:var(--text-soft);}
+  .filter-bar .fb-text strong{color:var(--text); font-weight:600;}
+  .filter-bar .fb-clear{
+    margin-left:auto;
+    border:1px solid var(--border-strong);
+    background:transparent;
+    color:var(--text-soft);
+    font-weight:600;
+    font-size:12px;
+    padding:5px 12px;
+    border-radius:999px;
+    cursor:pointer;
+    transition:border-color .12s ease, color .12s ease;
+  }
+  .filter-bar .fb-clear:hover{border-color:var(--brand); color:var(--brand);}
+
+  /* ================= LAYOUT PRINCIPAL ================= */
+  .layout{
+    flex:1;
+    display:flex;
+    min-height:0;
+  }
+  .orders-panel{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    min-width:0;
+    background:var(--panel-bg);
+    border-right:1px solid var(--border);
+  }
+  .side-panel{
+    flex:none;
+    width:340px;
+    display:flex;
+    flex-direction:column;
+    min-height:0;
+    background:var(--sidebar-bg);
+    overflow-y:auto;
+  }
+
+  .panel-head{
+    flex:none;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:13px 18px;
+    border-bottom:1px solid var(--border);
+  }
+  .panel-head h2{font-size:13.5px; font-weight:700;}
+
+  /* ---- colunas ---- */
+  .col-toggle{position:relative;}
+  .col-toggle-btn{
+    display:flex; align-items:center; gap:6px;
+    border:1px solid var(--border);
+    background:transparent;
+    color:var(--text-soft);
+    font-size:12px;
+    font-weight:600;
+    padding:6px 11px;
+    border-radius:var(--radius-sm);
+    cursor:pointer;
+    transition:border-color .12s ease, color .12s ease;
+  }
+  .col-toggle-btn:hover{border-color:var(--brand); color:var(--brand);}
+  .col-menu{
+    position:absolute;
+    right:0; top:calc(100% + 6px);
+    background:var(--active-bg);
+    border:1px solid var(--border-strong);
+    border-radius:var(--radius-md);
+    box-shadow:0 12px 32px rgba(0,0,0,.5);
+    padding:9px;
+    width:200px;
+    display:none;
+    z-index:20;
+  }
+  .col-menu.is-open{display:block;}
+  .col-menu-title{
+    font-size:10.5px;
+    text-transform:uppercase;
+    letter-spacing:.04em;
+    color:var(--text-faint);
+    padding:2px 6px 8px;
+  }
+  .col-menu label{
+    display:flex; align-items:center; gap:8px;
+    font-size:12.5px;
+    color:var(--text-soft);
+    padding:6px;
+    border-radius:var(--radius-sm);
+    cursor:pointer;
+  }
+  .col-menu label:hover{background:var(--hover-bg); color:var(--text);}
+  .col-menu input{accent-color:var(--brand);}
+
+  /* ---- tabela ---- */
+  .table-scroll{flex:1; overflow:auto; min-height:0;}
+  table.orders-table{width:100%; border-collapse:collapse; font-size:13px;}
+  .orders-table thead th{
+    position:sticky; top:0;
+    background:var(--panel-bg);
+    text-align:left;
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:.03em;
+    color:var(--text-faint);
+    font-weight:600;
+    padding:10px 14px;
+    border-bottom:1px solid var(--border);
+    z-index:1;
+  }
+  .orders-table tbody td{
+    padding:11px 14px;
+    border-bottom:1px solid var(--border);
+    color:var(--text-soft);
+    vertical-align:middle;
+  }
+  .orders-table tbody tr.order-row{border-left:3px solid transparent; transition:background .12s ease;}
+  .orders-table tbody tr.order-row:hover{background:var(--hover-bg);}
+  .orders-table tbody tr.order-row[data-atrasado="true"]{
+    border-left-color:var(--atrasado);
+    background:linear-gradient(90deg, var(--atrasado-bg), transparent 45%);
+  }
+  .orders-table tr.order-row[hidden]{display:none;}
+
+  .pedido-id{font-family:var(--font-mono); font-weight:600; color:var(--text);}
+  .nf-id{font-family:var(--font-mono); color:var(--text-faint);}
+
+  .star-btn{border:none; background:none; cursor:pointer; font-size:15px; color:var(--semtrat); line-height:1; padding:2px;}
+
+  .status-pill{
+    display:inline-flex; align-items:center; gap:6px;
+    padding:4px 10px; border-radius:999px;
+    font-size:11.5px; font-weight:600; white-space:nowrap;
+  }
+  .status-pill::before{content:""; width:6px; height:6px; border-radius:50%; background:currentColor;}
+  .status-pill.autorizado{background:var(--autorizado-bg); color:var(--autorizado);}
+  .status-pill.separacao{background:var(--separacao-bg); color:var(--separacao);}
+  .status-pill.conferencia{background:var(--conferencia-bg); color:var(--conferencia);}
+  .status-pill.transito{background:var(--transito-bg); color:var(--transito);}
+
+  .atraso-tag{
+    display:inline-block; margin-left:8px;
+    font-size:10.5px; font-weight:700;
+    color:var(--atrasado); background:var(--atrasado-bg);
+    padding:2px 7px; border-radius:999px; vertical-align:middle;
+  }
+
+  .tratativa-text{color:var(--text-soft);}
+  .tratativa-empty{color:var(--semtrat); font-style:italic; display:inline-flex; align-items:center; gap:5px;}
+
+  .table-footer{flex:none; padding:11px 18px; font-size:12px; color:var(--text-faint); border-top:1px solid var(--border);}
+
+  .orders-table.hide-nf [data-col="nf"]{display:none;}
+  .orders-table.hide-transportadora [data-col="transportadora"]{display:none;}
+  .orders-table.hide-agendamento [data-col="agendamento"]{display:none;}
+  .orders-table.hide-status [data-col="status"]{display:none;}
+  .orders-table.hide-tratativa [data-col="tratativa"]{display:none;}
+
+  /* ================= MEU PAINEL ================= */
+  .side-panel-title{
+    flex:none;
+    font-size:13.5px; font-weight:700;
+    padding:13px 18px;
+    border-bottom:1px solid var(--border);
+  }
+  .side-section{padding:15px 18px; border-bottom:1px solid var(--border);}
+  .side-section h3{font-size:12.5px; font-weight:700; margin-bottom:9px; color:var(--text);}
+  .side-section .hint{font-size:11px; color:var(--text-faint); margin:-4px 0 9px;}
+
+  .priority-item{display:flex; align-items:flex-start; gap:9px; padding:6px 0; font-size:12.5px;}
+  .priority-item input{margin-top:3px; accent-color:var(--brand); flex:none;}
+  .priority-item span{color:var(--text-soft);}
+  .priority-item.is-done span{color:var(--text-faint); text-decoration:line-through;}
+  .priority-add{padding-top:5px;}
+
+  .add-btn{
+    display:block; width:100%; text-align:left;
+    background:transparent;
+    border:1px dashed var(--border-strong);
+    color:var(--text-faint);
+    font-size:12px;
+    padding:7px 10px;
+    border-radius:var(--radius-md);
+    cursor:pointer;
+  }
+  .add-btn:hover{border-color:var(--brand); color:var(--brand);}
+  .inline-add-input{
+    width:100%;
+    background:var(--panel-bg);
+    border:1px solid var(--brand);
+    border-radius:var(--radius-md);
+    padding:6px 10px;
+    color:var(--text);
+    font-size:12.5px;
+    font-family:inherit;
+  }
+
+  .track-item{
+    width:100%; text-align:left;
+    display:flex; flex-direction:column; gap:2px;
+    background:var(--hover-bg);
+    border:1px solid var(--border);
+    border-radius:var(--radius-md);
+    padding:9px 11px;
+    cursor:pointer;
+    margin-bottom:7px;
+    transition:border-color .12s ease, background .12s ease;
+  }
+  .track-item:hover{border-color:var(--brand); background:var(--brand-soft);}
+  .track-id{font-family:var(--font-mono); font-weight:600; font-size:12px; color:var(--brand);}
+  .track-note{font-size:11.5px; color:var(--text-faint);}
+  .track-empty{font-size:12px; color:var(--text-faint); font-style:italic;}
+
+  .side-section.workspace{flex:1; display:flex; flex-direction:column; min-height:0; border-bottom:none;}
+  .note-list{margin-bottom:9px;}
+  .note-chip{
+    display:flex; align-items:center; gap:8px;
+    padding:6px 9px;
+    background:var(--hover-bg);
+    border:1px solid var(--border);
+    border-radius:var(--radius-md);
+    margin-bottom:6px;
+    font-size:12px;
+  }
+  .note-icon{flex:none;}
+  .note-text{flex:1; color:var(--text-soft);}
+  .note-remove{border:none; background:none; color:var(--text-faint); cursor:pointer; font-size:14px; line-height:1; padding:2px 4px; border-radius:4px;}
+  .note-remove:hover{background:var(--active-bg); color:var(--text);}
+
+  .workspace textarea{
+    flex:1;
+    min-height:110px;
+    resize:vertical;
+    width:100%;
+    border:1px solid var(--border);
+    border-radius:var(--radius-md);
+    padding:8px 12px;
+    font-family:var(--font-body);
+    font-size:12.5px;
+    line-height:26px;
+    color:var(--text);
+    background-color:var(--panel-bg);
+    background-image:repeating-linear-gradient(to bottom, transparent 0, transparent 25px, var(--border) 26px);
+    background-attachment:local;
+  }
+  .workspace textarea::placeholder{color:var(--text-faint);}
+
+  /* ================= RESPONSIVO ================= */
+  @media (max-width:1080px){
+    .app{height:auto; min-height:100vh;}
+    .layout{flex-direction:column;}
+    .orders-panel{border-right:none; border-bottom:1px solid var(--border);}
+    .side-panel{width:100%; overflow-y:visible;}
+    .table-scroll{flex:none; max-height:480px;}
+    .side-section.workspace textarea{min-height:140px;}
+  }
+  @media (max-width:640px){
+    .kpis{flex-wrap:wrap;}
+    .kpi{flex:1 1 50%;}
+    .topbar{padding:0 14px;}
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{transition:none !important; animation:none !important;}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ================= TITLE BAR ================= -->
+  <header class="topbar">
+    <div style="display:flex; align-items:center;">
+      <div class="traffic-lights"><span class="tl-r"></span><span class="tl-y"></span><span class="tl-g"></span></div>
+      <div class="brand-lockup">
+        <svg class="brand-mark" width="26" height="26" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <rect width="28" height="28" rx="7" fill="#4fa8ff"/>
+          <path d="M9 20 L13 8 M19 20 L15 8" stroke="#0d1117" stroke-width="2" stroke-linecap="round"/>
+          <path d="M14 9 L14 19" stroke="#0d1117" stroke-width="2" stroke-dasharray="2 3" stroke-linecap="round"/>
+        </svg>
+        <div class="brand-text">
+          <h1>Painel de Pedidos</h1>
+          <span class="subtitle">Separação · Conferência · Expedição</span>
+        </div>
+      </div>
+    </div>
+    <div class="user-chip">
+      <span class="user-avatar">F</span>
+      <span>
+        <span class="user-name">Filipe</span>
+        <span class="user-role">Analista de Logística</span>
+      </span>
+    </div>
+  </header>
+
+  <!-- ================= KPIs ================= -->
+  <section class="kpis" aria-label="Indicadores (clique para filtrar a lista)">
+    <button class="kpi" type="button" aria-pressed="false"
+      data-filter-type="stage" data-filter-value="autorizado" data-filter-label="Autorizado"
+      data-dot-color="#4fa8ff" style="--dot-color:#4fa8ff; --tint-color:rgba(79,168,255,.14);">
+      <span class="kpi-dot"></span>
+      <span><span class="kpi-num">120</span><span class="kpi-label">Autorizado</span></span>
+    </button>
+    <button class="kpi" type="button" aria-pressed="false"
+      data-filter-type="stage" data-filter-value="separacao" data-filter-label="Separação"
+      data-dot-color="#e3b341" style="--dot-color:#e3b341; --tint-color:rgba(227,179,65,.14);">
+      <span class="kpi-dot"></span>
+      <span><span class="kpi-num">148</span><span class="kpi-label">Separação</span></span>
+    </button>
+    <button class="kpi" type="button" aria-pressed="false"
+      data-filter-type="stage" data-filter-value="conferencia" data-filter-label="Conferência"
+      data-dot-color="#ff9f5a" style="--dot-color:#ff9f5a; --tint-color:rgba(255,159,90,.14);">
+      <span class="kpi-dot"></span>
+      <span><span class="kpi-num">28</span><span class="kpi-label">Conferência</span></span>
+    </button>
+    <button class="kpi" type="button" aria-pressed="false"
+      data-filter-type="stage" data-filter-value="transito" data-filter-label="Em Trânsito"
+      data-dot-color="#b98ff5" style="--dot-color:#b98ff5; --tint-color:rgba(185,143,245,.14);">
+      <span class="kpi-dot"></span>
+      <span><span class="kpi-num">9</span><span class="kpi-label">Em Trânsito</span></span>
+    </button>
+    <button class="kpi" type="button" aria-pressed="false"
+      data-filter-type="atrasado" data-filter-value="true" data-filter-label="Atrasados"
+      data-dot-color="#ff6b6b" style="--dot-color:#ff6b6b; --tint-color:rgba(255,107,107,.16);">
+      <span class="kpi-dot"></span>
+      <span><span class="kpi-num">9</span><span class="kpi-label">Atrasados</span></span>
+    </button>
+    <button class="kpi" type="button" aria-pressed="false"
+      data-filter-type="semtratativa" data-filter-value="true" data-filter-label="Sem Tratativas"
+      data-dot-color="#f2c94c" style="--dot-color:#f2c94c; --tint-color:rgba(242,201,76,.14);">
+      <span class="kpi-dot is-warn"></span>
+      <span><span class="kpi-num">56</span><span class="kpi-label">Sem Tratativas</span></span>
+    </button>
+  </section>
+
+  <!-- ================= FILTRO ATIVO ================= -->
+  <div class="filter-bar" id="filterBar" hidden>
+    <span class="fb-dot" id="filterDot"></span>
+    <span class="fb-text">Filtro ativo: <strong id="filterLabel"></strong></span>
+    <button class="fb-clear" id="clearFilter" type="button">Limpar</button>
+  </div>
+
+  <!-- ================= LAYOUT PRINCIPAL ================= -->
+  <main class="layout">
+
+    <!-- ---------- LISTA DE PEDIDOS ---------- -->
+    <section class="orders-panel">
+      <div class="panel-head">
+        <h2>Lista de Pedidos</h2>
+        <div class="col-toggle">
+          <button class="col-toggle-btn" id="colBtn" type="button" aria-haspopup="true" aria-expanded="false">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            Colunas
+          </button>
+          <div class="col-menu" id="colMenu">
+            <div class="col-menu-title">Exibir colunas</div>
+            <label><input type="checkbox" value="nf" checked> NF</label>
+            <label><input type="checkbox" value="transportadora" checked> Transportadora</label>
+            <label><input type="checkbox" value="agendamento" checked> Agendamento</label>
+            <label><input type="checkbox" value="status" checked> Status SSW</label>
+            <label><input type="checkbox" value="tratativa" checked> Tratativa</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-scroll">
+        <table class="orders-table" id="ordersTable">
+          <thead>
+            <tr>
+              <th style="width:34px;">⭐</th>
+              <th data-col="pedido">Pedido</th>
+              <th data-col="nf">NF</th>
+              <th data-col="transportadora">Transportadora</th>
+              <th data-col="agendamento">Agendamento</th>
+              <th data-col="status">Status SSW</th>
+              <th data-col="tratativa">Tratativa</th>
+            </tr>
+          </thead>
+          <tbody id="ordersBody">
+
+            <tr class="order-row is-starred" data-pedido="163156" data-stage="separacao" data-atrasado="false" data-tratativa-empty="false" data-note="Cliente aguardando retorno">
+              <td><button class="star-btn" type="button" aria-pressed="true" aria-label="Marcar pedido 163156">★</button></td>
+              <td data-col="pedido"><span class="pedido-id">163156</span></td>
+              <td data-col="nf"><span class="nf-id">55210</span></td>
+              <td data-col="transportadora">Braspress</td>
+              <td data-col="agendamento">05/08 · 08:30</td>
+              <td data-col="status"><span class="status-pill separacao">Em Separação</span></td>
+              <td data-col="tratativa"><span class="tratativa-text">Cliente aguardando retorno</span></td>
+            </tr>
+
+            <tr class="order-row" data-pedido="163250" data-stage="autorizado" data-atrasado="false" data-tratativa-empty="true">
+              <td><button class="star-btn" type="button" aria-pressed="false" aria-label="Marcar pedido 163250">☆</button></td>
+              <td data-col="pedido"><span class="pedido-id">163250</span></td>
+              <td data-col="nf"><span class="nf-id">55234</span></td>
+              <td data-col="transportadora">Jamef</td>
+              <td data-col="agendamento">06/08 · 14:00</td>
+              <td data-col="status"><span class="status-pill autorizado">Autorizado</span></td>
+              <td data-col="tratativa"><span class="tratativa-empty">⚠ Sem tratativa</span></td>
+            </tr>
+
+            <tr class="order-row is-starred" data-pedido="164020" data-stage="conferencia" data-atrasado="false" data-tratativa-empty="false" data-note="Agendamento solicitado">
+              <td><button class="star-btn" type="button" aria-pressed="true" aria-label="Marcar pedido 164020">★</button></td>
+              <td data-col="pedido"><span class="pedido-id">164020</span></td>
+              <td data-col="nf"><span class="nf-id">55310</span></td>
+              <td data-col="transportadora">Rodonaves</td>
+              <td data-col="agendamento">07/08 · 09:00</td>
+              <td data-col="status"><span class="status-pill conferencia">Em Conferência</span></td>
+              <td data-col="tratativa"><span class="tratativa-text">Agendamento solicitado</span></td>
+            </tr>
+
+            <tr class="order-row" data-pedido="163980" data-stage="transito" data-atrasado="true" data-tratativa-empty="true">
+              <td><button class="star-btn" type="button" aria-pressed="false" aria-label="Marcar pedido 163980">☆</button></td>
+              <td data-col="pedido"><span class="pedido-id">163980</span></td>
+              <td data-col="nf"><span class="nf-id">55298</span></td>
+              <td data-col="transportadora">Patrus</td>
+              <td data-col="agendamento">03/08 · 11:00 <span class="atraso-tag">Atrasado</span></td>
+              <td data-col="status"><span class="status-pill transito">Em Trânsito</span></td>
+              <td data-col="tratativa"><span class="tratativa-empty">⚠ Sem tratativa</span></td>
+            </tr>
+
+            <tr class="order-row" data-pedido="164102" data-stage="separacao" data-atrasado="true" data-tratativa-empty="true">
+              <td><button class="star-btn" type="button" aria-pressed="false" aria-label="Marcar pedido 164102">☆</button></td>
+              <td data-col="pedido"><span class="pedido-id">164102</span></td>
+              <td data-col="nf"><span class="nf-id">55355</span></td>
+              <td data-col="transportadora">TNT Mercúrio</td>
+              <td data-col="agendamento">04/08 · 16:00 <span class="atraso-tag">Atrasado</span></td>
+              <td data-col="status"><span class="status-pill separacao">Em Separação</span></td>
+              <td data-col="tratativa"><span class="tratativa-empty">⚠ Sem tratativa</span></td>
+            </tr>
+
+            <tr class="order-row" data-pedido="163890" data-stage="conferencia" data-atrasado="true" data-tratativa-empty="false">
+              <td><button class="star-btn" type="button" aria-pressed="false" aria-label="Marcar pedido 163890">☆</button></td>
+              <td data-col="pedido"><span class="pedido-id">163890</span></td>
+              <td data-col="nf"><span class="nf-id">55276</span></td>
+              <td data-col="transportadora">Solistica</td>
+              <td data-col="agendamento">02/08 · 10:00 <span class="atraso-tag">Atrasado</span></td>
+              <td data-col="status"><span class="status-pill conferencia">Em Conferência</span></td>
+              <td data-col="tratativa"><span class="tratativa-text">Aguardando peça avulsa</span></td>
+            </tr>
+
+            <tr class="order-row" data-pedido="164150" data-stage="autorizado" data-atrasado="false" data-tratativa-empty="true">
+              <td><button class="star-btn" type="button" aria-pressed="false" aria-label="Marcar pedido 164150">☆</button></td>
+              <td data-col="pedido"><span class="pedido-id">164150</span></td>
+              <td data-col="nf"><span class="nf-id">55370</span></td>
+              <td data-col="transportadora">Rapidão Cometa</td>
+              <td data-col="agendamento">08/08 · 13:00</td>
+              <td data-col="status"><span class="status-pill autorizado">Autorizado</span></td>
+              <td data-col="tratativa"><span class="tratativa-empty">⚠ Sem tratativa</span></td>
+            </tr>
+
+            <tr class="order-row" data-pedido="163720" data-stage="transito" data-atrasado="false" data-tratativa-empty="false">
+              <td><button class="star-btn" type="button" aria-pressed="false" aria-label="Marcar pedido 163720">☆</button></td>
+              <td data-col="pedido"><span class="pedido-id">163720</span></td>
+              <td data-col="nf"><span class="nf-id">55190</span></td>
+              <td data-col="transportadora">Braspress</td>
+              <td data-col="agendamento">01/08 · 09:00</td>
+              <td data-col="status"><span class="status-pill transito">Em Trânsito</span></td>
+              <td data-col="tratativa"><span class="tratativa-text">Confirmado com cliente</span></td>
+            </tr>
+
+            <tr class="order-row" data-pedido="164055" data-stage="separacao" data-atrasado="false" data-tratativa-empty="true">
+              <td><button class="star-btn" type="button" aria-pressed="false" aria-label="Marcar pedido 164055">☆</button></td>
+              <td data-col="pedido"><span class="pedido-id">164055</span></td>
+              <td data-col="nf"><span class="nf-id">55322</span></td>
+              <td data-col="transportadora">Jamef</td>
+              <td data-col="agendamento">06/08 · 08:00</td>
+              <td data-col="status"><span class="status-pill separacao">Em Separação</span></td>
+              <td data-col="tratativa"><span class="tratativa-empty">⚠ Sem tratativa</span></td>
+            </tr>
+
+            <tr class="order-row" data-pedido="163602" data-stage="conferencia" data-atrasado="true" data-tratativa-empty="true">
+              <td><button class="star-btn" type="button" aria-pressed="false" aria-label="Marcar pedido 163602">☆</button></td>
+              <td data-col="pedido"><span class="pedido-id">163602</span></td>
+              <td data-col="nf"><span class="nf-id">55160</span></td>
+              <td data-col="transportadora">Rodonaves</td>
+              <td data-col="agendamento">30/07 · 15:00 <span class="atraso-tag">Atrasado</span></td>
+              <td data-col="status"><span class="status-pill conferencia">Em Conferência</span></td>
+              <td data-col="tratativa"><span class="tratativa-empty">⚠ Sem tratativa</span></td>
+            </tr>
+
+            <tr class="order-row" data-pedido="164210" data-stage="autorizado" data-atrasado="false" data-tratativa-empty="false">
+              <td><button class="star-btn" type="button" aria-pressed="false" aria-label="Marcar pedido 164210">☆</button></td>
+              <td data-col="pedido"><span class="pedido-id">164210</span></td>
+              <td data-col="nf"><span class="nf-id">55402</span></td>
+              <td data-col="transportadora">Patrus</td>
+              <td data-col="agendamento">09/08 · 10:30</td>
+              <td data-col="status"><span class="status-pill autorizado">Autorizado</span></td>
+              <td data-col="tratativa"><span class="tratativa-text">Cliente solicitou antecipação</span></td>
+            </tr>
+
+            <tr class="order-row" data-pedido="163845" data-stage="transito" data-atrasado="false" data-tratativa-empty="true">
+              <td><button class="star-btn" type="button" aria-pressed="false" aria-label="Marcar pedido 163845">☆</button></td>
+              <td data-col="pedido"><span class="pedido-id">163845</span></td>
+              <td data-col="nf"><span class="nf-id">55260</span></td>
+              <td data-col="transportadora">TNT Mercúrio</td>
+              <td data-col="agendamento">03/08 · 14:00</td>
+              <td data-col="status"><span class="status-pill transito">Em Trânsito</span></td>
+              <td data-col="tratativa"><span class="tratativa-empty">⚠ Sem tratativa</span></td>
+            </tr>
+
+            <tr class="order-row" data-pedido="164178" data-stage="separacao" data-atrasado="false" data-tratativa-empty="true">
+              <td><button class="star-btn" type="button" aria-pressed="false" aria-label="Marcar pedido 164178">☆</button></td>
+              <td data-col="pedido"><span class="pedido-id">164178</span></td>
+              <td data-col="nf"><span class="nf-id">55388</span></td>
+              <td data-col="transportadora">Solistica</td>
+              <td data-col="agendamento">08/08 · 09:00</td>
+              <td data-col="status"><span class="status-pill separacao">Em Separação</span></td>
+              <td data-col="tratativa"><span class="tratativa-empty">⚠ Sem tratativa</span></td>
+            </tr>
+
+            <tr class="order-row" data-pedido="163510" data-stage="conferencia" data-atrasado="true" data-tratativa-empty="false">
+              <td><button class="star-btn" type="button" aria-pressed="false" aria-label="Marcar pedido 163510">☆</button></td>
+              <td data-col="pedido"><span class="pedido-id">163510</span></td>
+              <td data-col="nf"><span class="nf-id">55130</span></td>
+              <td data-col="transportadora">Rapidão Cometa</td>
+              <td data-col="agendamento">29/07 · 10:00 <span class="atraso-tag">Atrasado</span></td>
+              <td data-col="status"><span class="status-pill conferencia">Em Conferência</span></td>
+              <td data-col="tratativa"><span class="tratativa-text">Tratativa em aberto com o CD</span></td>
+            </tr>
+
+            <tr class="order-row" data-pedido="164240" data-stage="autorizado" data-atrasado="false" data-tratativa-empty="true">
+              <td><button class="star-btn" type="button" aria-pressed="false" aria-label="Marcar pedido 164240">☆</button></td>
+              <td data-col="pedido"><span class="pedido-id">164240</span></td>
+              <td data-col="nf"><span class="nf-id">55415</span></td>
+              <td data-col="transportadora">Braspress</td>
+              <td data-col="agendamento">10/08 · 11:00</td>
+              <td data-col="status"><span class="status-pill autorizado">Autorizado</span></td>
+              <td data-col="tratativa"><span class="tratativa-empty">⚠ Sem tratativa</span></td>
+            </tr>
+
+            <tr class="order-row" data-pedido="163935" data-stage="transito" data-atrasado="false" data-tratativa-empty="true">
+              <td><button class="star-btn" type="button" aria-pressed="false" aria-label="Marcar pedido 163935">☆</button></td>
+              <td data-col="pedido"><span class="pedido-id">163935</span></td>
+              <td data-col="nf"><span class="nf-id">55290</span></td>
+              <td data-col="transportadora">Jamef</td>
+              <td data-col="agendamento">04/08 · 17:00</td>
+              <td data-col="status"><span class="status-pill transito">Em Trânsito</span></td>
+              <td data-col="tratativa"><span class="tratativa-empty">⚠ Sem tratativa</span></td>
+            </tr>
+
+            <tr class="order-row" data-pedido="164301" data-stage="separacao" data-atrasado="false" data-tratativa-empty="false">
+              <td><button class="star-btn" type="button" aria-pressed="false" aria-label="Marcar pedido 164301">☆</button></td>
+              <td data-col="pedido"><span class="pedido-id">164301</span></td>
+              <td data-col="nf"><span class="nf-id">55440</span></td>
+              <td data-col="transportadora">Rodonaves</td>
+              <td data-col="agendamento">11/08 · 08:30</td>
+              <td data-col="status"><span class="status-pill separacao">Em Separação</span></td>
+              <td data-col="tratativa"><span class="tratativa-text">Aguardando etiqueta</span></td>
+            </tr>
+
+            <tr class="order-row" data-pedido="163680" data-stage="conferencia" data-atrasado="true" data-tratativa-empty="true">
+              <td><button class="star-btn" type="button" aria-pressed="false" aria-label="Marcar pedido 163680">☆</button></td>
+              <td data-col="pedido"><span class="pedido-id">163680</span></td>
+              <td data-col="nf"><span class="nf-id">55178</span></td>
+              <td data-col="transportadora">Patrus</td>
+              <td data-col="agendamento">31/07 · 13:00 <span class="atraso-tag">Atrasado</span></td>
+              <td data-col="status"><span class="status-pill conferencia">Em Conferência</span></td>
+              <td data-col="tratativa"><span class="tratativa-empty">⚠ Sem tratativa</span></td>
+            </tr>
+
+            <tr id="emptyRow" hidden>
+              <td colspan="7" style="text-align:center; color:var(--text-faint); padding:32px 14px;">
+                Nenhum pedido encontrado para este filtro.
+              </td>
+            </tr>
+
+          </tbody>
+        </table>
+      </div>
+
+      <div class="table-footer">Exibindo <span id="visibleCount">18</span> de 18 pedidos nesta página</div>
+    </section>
+
+    <!-- ---------- MEU PAINEL ---------- -->
+    <aside class="side-panel">
+      <div class="side-panel-title">Meu Painel</div>
+
+      <div class="side-section priorities">
+        <h3>📌 Prioridades</h3>
+        <ul id="prioList">
+          <li class="priority-item"><input type="checkbox" id="p1"><label for="p1"><span>Cobrar CPPLOG</span></label></li>
+          <li class="priority-item"><input type="checkbox" id="p2"><label for="p2"><span>Cliente XPTO</span></label></li>
+          <li class="priority-item"><input type="checkbox" id="p3"><label for="p3"><span>Agendar entrega pedido 163250</span></label></li>
+          <li class="priority-add">
+            <button class="add-btn" id="addPriorityBtn" type="button" data-placeholder="Nova prioridade">+ Adicionar prioridade</button>
+          </li>
+        </ul>
+      </div>
+
+      <div class="side-section tracking">
+        <h3>⭐ Acompanhamento</h3>
+        <p class="hint">Clique em um pedido para filtrar a lista</p>
+        <ul id="trackList"></ul>
+      </div>
+
+      <div class="side-section workspace">
+        <h3>📝 Workspace</h3>
+        <div class="note-list" id="noteList">
+          <div class="note-chip"><span class="note-icon">📝</span><span class="note-text">Cobrar CPPLOG</span><button class="note-remove" type="button" aria-label="Remover nota">×</button></div>
+          <div class="note-chip"><span class="note-icon">📝</span><span class="note-text">Confirmar NF</span><button class="note-remove" type="button" aria-label="Remover nota">×</button></div>
+          <button class="add-btn" id="addNoteBtn" type="button" data-placeholder="Nova nota rápida">+ Nova nota</button>
+        </div>
+        <textarea placeholder="Anotações livres..."></textarea>
+      </div>
+    </aside>
+
+  </main>
+</div>
+
+<script>
+(function(){
+  function escapeHtml(str){
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+  function hexToRgba(hex, alpha){
+    const h = hex.replace('#','');
+    const r = parseInt(h.substring(0,2),16), g = parseInt(h.substring(2,4),16), b = parseInt(h.substring(4,6),16);
+    return 'rgba(' + r + ',' + g + ',' + b + ',' + alpha + ')';
+  }
+
+  /* ---------------- filtro por KPI / pedido ---------------- */
+  const kpiButtons = document.querySelectorAll('.kpi');
+  const filterBar  = document.getElementById('filterBar');
+  const filterLabel= document.getElementById('filterLabel');
+  const filterDot  = document.getElementById('filterDot');
+  const clearBtn   = document.getElementById('clearFilter');
+  const rows       = document.querySelectorAll('#ordersBody tr.order-row');
+  const emptyRow   = document.getElementById('emptyRow');
+  const visibleCountEl = document.getElementById('visibleCount');
+  const trackList  = document.getElementById('trackList');
+
+  let activeFilter = null;
+
+  function setActiveFilter(filter){
+    activeFilter = filter;
+    applyFilter();
+    renderFilterBar();
+    syncKpiActiveStates();
+  }
+  function clearFilter(){
+    activeFilter = null;
+    applyFilter();
+    renderFilterBar();
+    syncKpiActiveStates();
+  }
+  function applyFilter(){
+    let visible = 0;
+    rows.forEach(row => {
+      let show = true;
+      if (activeFilter){
+        if (activeFilter.type === 'stage') show = row.dataset.stage === activeFilter.value;
+        else if (activeFilter.type === 'atrasado') show = row.dataset.atrasado === 'true';
+        else if (activeFilter.type === 'semtratativa') show = row.dataset.tratativaEmpty === 'true';
+        else if (activeFilter.type === 'pedido') show = row.dataset.pedido === activeFilter.value;
+      }
+      row.hidden = !show;
+      if (show) visible++;
+    });
+    emptyRow.hidden = visible !== 0;
+    visibleCountEl.textContent = visible;
+  }
+  function renderFilterBar(){
+    if (!activeFilter){ filterBar.hidden = true; return; }
+    filterBar.hidden = false;
+    filterLabel.textContent = activeFilter.label;
+    const color = activeFilter.color || '#4fa8ff';
+    filterDot.style.background = color;
+    filterBar.style.borderLeftColor = color;
+    filterBar.style.background = hexToRgba(color, 0.06);
+  }
+  function syncKpiActiveStates(){
+    kpiButtons.forEach(btn => {
+      const active = !!activeFilter && btn.dataset.filterType === activeFilter.type && btn.dataset.filterValue === activeFilter.value;
+      btn.classList.toggle('is-active', active);
+      btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+    });
+  }
+  kpiButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const type = btn.dataset.filterType, value = btn.dataset.filterValue;
+      if (activeFilter && activeFilter.type === type && activeFilter.value === value) clearFilter();
+      else setActiveFilter({ type, value, label: btn.dataset.filterLabel, color: btn.dataset.dotColor });
+    });
+  });
+  clearBtn.addEventListener('click', clearFilter);
+
+  /* ---------------- estrela / acompanhamento ---------------- */
+  function syncTrackList(){
+    const starred = document.querySelectorAll('#ordersBody tr.is-starred');
+    trackList.innerHTML = '';
+    if (starred.length === 0){
+      const li = document.createElement('li');
+      li.className = 'track-empty';
+      li.textContent = 'Nenhum pedido marcado.';
+      trackList.appendChild(li);
+      return;
+    }
+    starred.forEach(row => {
+      const li = document.createElement('li');
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'track-item';
+      const note = row.dataset.note || 'Pedido marcado para acompanhamento';
+      btn.innerHTML = '<span class="track-id">Pedido ' + row.dataset.pedido + '</span><span class="track-note">' + escapeHtml(note) + '</span>';
+      btn.addEventListener('click', () => {
+        setActiveFilter({ type: 'pedido', value: row.dataset.pedido, label: 'Pedido ' + row.dataset.pedido, color: '#4fa8ff' });
+      });
+      li.appendChild(btn);
+      trackList.appendChild(li);
+    });
+  }
+  document.querySelectorAll('.star-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const row = btn.closest('tr');
+      const pressed = btn.getAttribute('aria-pressed') === 'true';
+      btn.setAttribute('aria-pressed', pressed ? 'false' : 'true');
+      btn.textContent = pressed ? '☆' : '★';
+      row.classList.toggle('is-starred', !pressed);
+      syncTrackList();
+    });
+  });
+  syncTrackList();
+
+  /* ---------------- colunas ---------------- */
+  const colBtn  = document.getElementById('colBtn');
+  const colMenu = document.getElementById('colMenu');
+  const table   = document.getElementById('ordersTable');
+  colBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const open = colMenu.classList.toggle('is-open');
+    colBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  });
+  document.addEventListener('click', (e) => {
+    if (!colMenu.contains(e.target) && e.target !== colBtn){
+      colMenu.classList.remove('is-open');
+      colBtn.setAttribute('aria-expanded', 'false');
+    }
+  });
+  colMenu.querySelectorAll('input[type="checkbox"]').forEach(chk => {
+    chk.addEventListener('change', () => table.classList.toggle('hide-' + chk.value, !chk.checked));
+  });
+
+  /* ---------------- prioridades (checklist) ---------------- */
+  function bindPriorityCheckbox(chk){
+    chk.addEventListener('change', () => chk.closest('.priority-item').classList.toggle('is-done', chk.checked));
+  }
+  document.querySelectorAll('.priority-item input[type="checkbox"]').forEach(bindPriorityCheckbox);
+
+  /* ---------------- adicionar inline (prioridade / nota) ---------------- */
+  function setupInlineAdd(addBtn, onSubmit){
+    addBtn.addEventListener('click', () => {
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.className = 'inline-add-input';
+      input.placeholder = addBtn.dataset.placeholder || 'Digite e pressione Enter';
+      addBtn.replaceWith(input);
+      input.focus();
+      let committed = false;
+      function commit(){
+        if (committed) return;
+        committed = true;
+        const val = input.value.trim();
+        input.replaceWith(addBtn);
+        if (val) onSubmit(val);
+      }
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter'){ e.preventDefault(); commit(); }
+        else if (e.key === 'Escape'){ committed = true; input.replaceWith(addBtn); }
+      });
+      input.addEventListener('blur', commit);
+    });
+  }
+
+  const addPriorityBtn = document.getElementById('addPriorityBtn');
+  setupInlineAdd(addPriorityBtn, (text) => {
+    const li = document.createElement('li');
+    li.className = 'priority-item';
+    const id = 'p' + Date.now();
+    li.innerHTML = '<input type="checkbox" id="' + id + '"><label for="' + id + '"><span>' + escapeHtml(text) + '</span></label>';
+    addPriorityBtn.closest('li.priority-add').before(li);
+    bindPriorityCheckbox(li.querySelector('input'));
+  });
+
+  const addNoteBtn = document.getElementById('addNoteBtn');
+  function bindNoteRemove(btn){
+    btn.addEventListener('click', () => btn.closest('.note-chip').remove());
+  }
+  document.querySelectorAll('.note-remove').forEach(bindNoteRemove);
+  setupInlineAdd(addNoteBtn, (text) => {
+    const chip = document.createElement('div');
+    chip.className = 'note-chip';
+    chip.innerHTML = '<span class="note-icon">📝</span><span class="note-text"></span><button class="note-remove" type="button" aria-label="Remover nota">×</button>';
+    chip.querySelector('.note-text').textContent = text;
+    bindNoteRemove(chip.querySelector('.note-remove'));
+    addNoteBtn.before(chip);
+  });
+})();
+</script>
+</body>
+</html>
+HTMLEOF
+echo "arquivo salvo"
