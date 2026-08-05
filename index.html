@@ -83,56 +83,94 @@
       flex:none;
       display:grid;
       grid-template-columns:repeat(auto-fit, minmax(160px, 1fr));
-      gap:12px;
-      padding:16px 18px;
-      background:var(--toolbar-bg);
+      gap:10px;
+      padding:12px 14px;
+      background:var(--shell-bg);
       border-bottom:1px solid var(--border);
     }
     .kpi{
       display:flex;
       flex-direction:column;
       align-items:flex-start;
-      gap:6px;
-      background:var(--panel-bg);
+      gap:8px;
+      background:linear-gradient(135deg, rgba(38,38,38,0.9) 0%, rgba(30,30,30,0.95) 100%);
       border:1px solid var(--border);
-      border-radius:var(--radius-md);
-      padding:14px 12px;
+      border-radius:6px;
+      padding:12px;
       cursor:pointer;
-      transition:all .15s;
+      transition:all .2s ease;
       min-width:0;
+      position:relative;
+      overflow:hidden;
     }
-    .kpi:hover{border-color:var(--brand); background:var(--brand-soft);}
-    .kpi.is-active{border-color:var(--brand); background:var(--brand-soft);}
-    .kpi-dot{width:6px; height:6px; border-radius:50%; background:currentColor; opacity:.7;}
-    .kpi-num{font-weight:700; font-size:20px; line-height:1; color:var(--text);}
-    .kpi-label{font-size:11px; color:var(--text-faint); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%;}
-
-    /* Filtro Ativo */
-    .filter-bar{
-      flex:none;
+    .kpi::before{
+      content:'';
+      position:absolute;
+      top:0;
+      left:0;
+      right:0;
+      height:2px;
+      background:currentColor;
+      opacity:0;
+      transition:opacity .2s;
+    }
+    .kpi:hover{
+      border-color:currentColor;
+      transform:translateY(-2px);
+      box-shadow:0 6px 12px rgba(0,0,0,0.3);
+    }
+    .kpi:hover::before{opacity:1;}
+    .kpi.is-active{
+      border-color:currentColor;
+      background:linear-gradient(135deg, rgba(45,45,45,0.95) 0%, rgba(35,35,35,1) 100%);
+      box-shadow:0 4px 10px rgba(0,0,0,0.4);
+    }
+    .kpi.is-active::before{opacity:1;}
+    
+    .kpi-icon{
+      width:32px;
+      height:32px;
+      border-radius:6px;
+      border:1.5px solid currentColor;
+      opacity:0.3;
       display:flex;
       align-items:center;
-      gap:8px;
-      padding:6px 16px;
-      background:var(--brand-soft);
-      border-bottom:1px solid var(--border);
-      font-size:11px;
-      color:var(--text-soft);
-    }
-    .filter-bar[hidden]{display:none;}
-    .fb-clear{
-      margin-left:auto;
-      border:1px solid var(--brand);
+      justify-content:center;
+      font-size:14px;
+      font-weight:400;
       background:transparent;
-      color:var(--brand);
-      font-weight:600;
-      font-size:11px;
-      padding:3px 9px;
-      border-radius:999px;
-      cursor:pointer;
-      transition:all .12s;
     }
-    .fb-clear:hover{background:var(--brand); color:#0a0a0a;}
+    .kpi-content{
+      display:flex;
+      flex-direction:column;
+      gap:3px;
+      width:100%;
+    }
+    .kpi-top{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      width:100%;
+    }
+    .kpi-label{
+      font-size:10px;
+      color:var(--text-faint);
+      text-transform:uppercase;
+      letter-spacing:0.3px;
+      font-weight:500;
+    }
+    .kpi-trend{
+      font-size:9px;
+      color:var(--text-faint);
+      opacity:0.6;
+    }
+    .kpi-num{
+      font-weight:700;
+      font-size:22px;
+      line-height:1;
+      color:var(--text);
+      letter-spacing:-0.5px;
+    }
 
     /* Layout */
     .layout{flex:1; display:flex; min-height:0;}
@@ -309,18 +347,18 @@
     /* Side Panel */
     .side-panel-title{
       flex:none;
-      font-size:12px;
+      font-size:13px;
       font-weight:700;
-      padding:12px 14px;
+      padding:14px 16px;
       border-bottom:1px solid var(--border);
     }
-    .side-section{padding:14px; border-bottom:1px solid var(--border);}
+    .side-section{padding:16px; border-bottom:1px solid var(--border);}
     .side-section:first-of-type{padding-top:0;}
     .side-section:last-child{border-bottom:none; flex:1; display:flex; flex-direction:column;}
-    .side-section h3{margin:0 0 8px; color:var(--text); font-size:12px;}
+    .side-section h3{margin:0 0 10px; color:var(--text); font-size:13px;}
 
-    .priority-item{display:flex; align-items:center; gap:8px; padding:6px 0; font-size:12px;}
-    .priority-item input{accent-color:var(--brand); flex:none; cursor:pointer;}
+    .priority-item{display:flex; align-items:center; gap:10px; padding:8px 0; font-size:13px;}
+    .priority-item input{accent-color:var(--brand); flex:none; cursor:pointer; transform:scale(1.2);}
     .priority-item label{flex:1; color:var(--text-soft); cursor:pointer;}
     .priority-item.is-done{display:none;}
 
@@ -329,16 +367,16 @@
       background:var(--hover-bg);
       border:1px solid var(--border);
       border-radius:var(--radius-sm);
-      padding:10px;
-      margin-bottom:6px;
+      padding:12px;
+      margin-bottom:8px;
       transition:border-color .12s;
       display:flex;
       align-items:center;
-      gap:10px;
+      gap:12px;
     }
     .priority-chip:hover{border-color:var(--brand);}
-    .priority-chip input{accent-color:var(--brand); flex:none; cursor:pointer; margin:0; transform:scale(1.1);}
-    .priority-chip span{flex:1; font-size:12px; color:var(--text-soft);}
+    .priority-chip input{accent-color:var(--brand); flex:none; cursor:pointer; margin:0; transform:scale(1.2);}
+    .priority-chip span{flex:1; font-size:13px; color:var(--text-soft);}
     .priority-chip.is-done{display:none;}
 
     .track-item{
@@ -346,29 +384,29 @@
       background:var(--hover-bg);
       border:1px solid var(--border);
       border-radius:var(--radius-sm);
-      padding:10px;
-      margin-bottom:6px;
+      padding:12px;
+      margin-bottom:8px;
       transition:border-color .12s;
     }
     .track-item:hover{border-color:var(--brand);}
-    .track-item-header{display:flex; align-items:center; justify-content:space-between; font-weight:600; font-size:12px; color:var(--brand); margin-bottom:2px;}
-    .track-item-remove{background:none; font-size:16px; line-height:1; padding:0; color:var(--text-faint); cursor:pointer;}
-    .track-item-note{font-size:11px; color:var(--text-faint); max-height:20px; overflow:hidden;}
+    .track-item-header{display:flex; align-items:center; justify-content:space-between; font-weight:600; font-size:13px; color:var(--brand); margin-bottom:4px;}
+    .track-item-remove{background:none; font-size:18px; line-height:1; padding:0; color:var(--text-faint); cursor:pointer;}
+    .track-item-note{font-size:12px; color:var(--text-faint); max-height:24px; overflow:hidden;}
     .track-observation{
-      font-size:11px;
+      font-size:12px;
       color:var(--text-soft);
       background:var(--active-bg);
-      padding:6px 7px;
+      padding:8px 9px;
       border-radius:3px;
-      margin-top:5px;
+      margin-top:6px;
       border-left:2px solid var(--brand);
     }
 
     .track-input{
       width:100%;
-      margin-top:5px;
-      padding:6px 8px;
-      font-size:11px;
+      margin-top:6px;
+      padding:8px 10px;
+      font-size:12px;
       border:1px solid var(--border);
       border-radius:3px;
       background:var(--active-bg);
@@ -381,16 +419,16 @@
     .note-chip{
       display:flex;
       align-items:center;
-      gap:8px;
-      padding:7px 9px;
+      gap:10px;
+      padding:9px 11px;
       background:var(--hover-bg);
       border:1px solid var(--border);
       border-radius:var(--radius-sm);
-      margin-bottom:6px;
-      font-size:12px;
+      margin-bottom:8px;
+      font-size:13px;
     }
     .note-text{flex:1; color:var(--text-soft);}
-    .note-remove{background:none; font-size:14px; line-height:1; padding:0; color:var(--text-faint); cursor:pointer;}
+    .note-remove{background:none; font-size:16px; line-height:1; padding:0; color:var(--text-faint); cursor:pointer;}
 
     .add-btn{
       width:100%;
@@ -398,8 +436,8 @@
       background:transparent;
       border:1px dashed var(--border-strong);
       color:var(--text-faint);
-      font-size:12px;
-      padding:7px 9px;
+      font-size:13px;
+      padding:9px 11px;
       border-radius:var(--radius-md);
       cursor:pointer;
       transition:all .12s;
@@ -410,12 +448,12 @@
     .workspace textarea{
       width:100%;
       flex:1;
-      min-height:100px;
-      padding:9px;
+      min-height:120px;
+      padding:11px;
       border:1px solid var(--border);
       border-radius:var(--radius-sm);
       font-family:var(--font-body);
-      font-size:12px;
+      font-size:13px;
       line-height:1.5;
       color:var(--text);
       background-color:var(--active-bg);
@@ -541,37 +579,79 @@
     <!-- KPIs -->
     <section class="kpis">
     <button class="kpi" data-filter-type="stage" data-filter-value="autorizado" data-filter-label="Autorizado" style="color:#5a96ff;">
-      <span class="kpi-dot"></span>
-      <span class="kpi-num">120</span>
-      <span class="kpi-label">Autorizado</span>
+      <div class="kpi-icon">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M13 4L6 11L3 8"/>
+        </svg>
+      </div>
+      <div class="kpi-content">
+        <div class="kpi-top">
+          <span class="kpi-label">Autorizado</span>
+          <span class="kpi-trend">—</span>
+        </div>
+        <span class="kpi-num">120</span>
+      </div>
     </button>
     <button class="kpi" data-filter-type="stage" data-filter-value="separacao" data-filter-label="Separação" style="color:#c9a055;">
-      <span class="kpi-dot"></span>
-      <span class="kpi-num">148</span>
-      <span class="kpi-label">Separação</span>
+      <div class="kpi-icon">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+          <rect x="3" y="3" width="10" height="10" rx="1"/>
+          <line x1="3" y1="8" x2="13" y2="8"/>
+        </svg>
+      </div>
+      <div class="kpi-content">
+        <div class="kpi-top">
+          <span class="kpi-label">Separação</span>
+          <span class="kpi-trend">—</span>
+        </div>
+        <span class="kpi-num">148</span>
+      </div>
     </button>
     <button class="kpi" data-filter-type="stage" data-filter-value="conferencia" data-filter-label="Conferência" style="color:#e8955f;">
-      <span class="kpi-dot"></span>
-      <span class="kpi-num">28</span>
-      <span class="kpi-label">Conferência</span>
+      <div class="kpi-icon">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M3 8L6 11L13 4"/>
+          <circle cx="8" cy="8" r="6"/>
+        </svg>
+      </div>
+      <div class="kpi-content">
+        <div class="kpi-top">
+          <span class="kpi-label">Conferência</span>
+          <span class="kpi-trend">—</span>
+        </div>
+        <span class="kpi-num">28</span>
+      </div>
     </button>
     <button class="kpi" data-filter-type="stage" data-filter-value="transito" data-filter-label="Em Trânsito" style="color:#a893f5;">
-      <span class="kpi-dot"></span>
-      <span class="kpi-num">9</span>
-      <span class="kpi-label">Em Trânsito</span>
+      <div class="kpi-icon">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M2 8h12M10 4l4 4-4 4"/>
+        </svg>
+      </div>
+      <div class="kpi-content">
+        <div class="kpi-top">
+          <span class="kpi-label">Em Trânsito</span>
+          <span class="kpi-trend">—</span>
+        </div>
+        <span class="kpi-num">9</span>
+      </div>
     </button>
     <button class="kpi" data-filter-type="semtratativa" data-filter-value="true" data-filter-label="Sem Tratativas" style="color:#d4a050;">
-      <span class="kpi-dot"></span>
-      <span class="kpi-num">56</span>
-      <span class="kpi-label">Sem Tratativas</span>
+      <div class="kpi-icon">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+          <circle cx="8" cy="8" r="6"/>
+          <path d="M8 5v3M8 11h.01"/>
+        </svg>
+      </div>
+      <div class="kpi-content">
+        <div class="kpi-top">
+          <span class="kpi-label">Sem Tratativas</span>
+          <span class="kpi-trend">—</span>
+        </div>
+        <span class="kpi-num">56</span>
+      </div>
     </button>
   </section>
-
-  <!-- Filtro Ativo -->
-  <div class="filter-bar" id="filterBar" hidden>
-    <span id="filterLabel"></span>
-    <button class="fb-clear" id="clearFilter">Limpar</button>
-  </div>
 
   <!-- Layout -->
   <main class="layout">
@@ -580,6 +660,13 @@
       <div class="panel-head">
         <h2>Pedidos</h2>
         <input type="text" id="searchOrders" placeholder="🔍 Buscar...">
+        
+        <!-- Filtro Ativo (inline) -->
+        <div id="filterBar" style="display:none; align-items:center; gap:6px; padding:4px 10px; background:var(--brand-soft); border:1px solid var(--brand); border-radius:4px; font-size:10px; color:var(--text-soft);">
+          <span id="filterLabel"></span>
+          <button class="fb-clear" id="clearFilter" style="margin-left:4px; border:1px solid var(--brand); background:transparent; color:var(--brand); font-weight:600; font-size:10px; padding:2px 8px; border-radius:999px; cursor:pointer;">Limpar</button>
+        </div>
+        
         <div style="position:relative;">
           <button class="col-toggle-btn" id="colBtn">⚙ Colunas</button>
           <div class="col-menu" id="colMenu">
@@ -736,6 +823,7 @@
     const row = document.createElement('tr');
     row.dataset.pedido = order.pedido;
     row.dataset.stage = order.stage;
+    row.dataset.tratativa = order.tratativa && order.tratativa.trim() !== '' ? 'true' : 'false';
     row.innerHTML = `
       <td style="text-align:center;"><button class="star-btn" type="button" aria-pressed="false">☆</button></td>
       <td data-col="pedido"><span class="pedido-id">${order.pedido}</span></td>
@@ -767,6 +855,21 @@
     tbody.appendChild(row);
   });
 
+  // Atualizar contadores dos KPIs
+  const countByStage = {
+    autorizado: orderData.filter(o => o.stage === 'autorizado').length,
+    separacao: orderData.filter(o => o.stage === 'separacao').length,
+    conferencia: orderData.filter(o => o.stage === 'conferencia').length,
+    transito: orderData.filter(o => o.stage === 'transito').length,
+    semtratativa: orderData.filter(o => !o.tratativa || o.tratativa.trim() === '').length
+  };
+  
+  document.querySelector('[data-filter-value="autorizado"] .kpi-num').textContent = countByStage.autorizado;
+  document.querySelector('[data-filter-value="separacao"] .kpi-num').textContent = countByStage.separacao;
+  document.querySelector('[data-filter-value="conferencia"] .kpi-num').textContent = countByStage.conferencia;
+  document.querySelector('[data-filter-value="transito"] .kpi-num').textContent = countByStage.transito;
+  document.querySelector('[data-filter-value="true"] .kpi-num').textContent = countByStage.semtratativa;
+
   // FILTROS
   let activeFilter = null;
   const kpiButtons = document.querySelectorAll('.kpi');
@@ -782,7 +885,7 @@
       let show = true;
       if (activeFilter) {
         if (activeFilter.type === 'stage') show = row.dataset.stage === activeFilter.value;
-        else if (activeFilter.type === 'semtratativa') show = row.dataset.tratativaEmpty === 'true';
+        else if (activeFilter.type === 'semtratativa') show = row.dataset.tratativa === 'false';
         else if (activeFilter.type === 'pedido') show = row.dataset.pedido === activeFilter.value;
         else if (activeFilter.type === 'agendamento') {
           const text = row.textContent.toLowerCase();
@@ -798,6 +901,7 @@
       if (show) visible++;
     });
     filterBar.hidden = !activeFilter;
+    filterBar.style.display = activeFilter ? 'flex' : 'none';
     if (activeFilter) filterLabel.textContent = `${activeFilter.label}`;
   }
 
